@@ -16,7 +16,7 @@ dreaded({
 }, async (context) => {
   await ownerMiddleware(context, async () => {
     const { m } = context;
-    const repo = "Fortunatusmokaya/dreaded-v2";
+    const repo = "Fortunatusmokaya/botfiles-v2";
     const botPath = require('path').join(__dirname, '..');
 
     try {
