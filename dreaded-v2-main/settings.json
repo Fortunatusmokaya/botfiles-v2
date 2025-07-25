@@ -1,0 +1,32 @@
+{
+  "globalSettings": {
+    "botname": "dreaded",
+    "prefix": ".",
+    "packname": "dreaded v2 🤖",
+    "mode": "public",
+    "presence": "online",
+    "autoview": true,
+    "autolike": true,
+    "autoread": true,
+    "autobio": false,
+    "anticall": true,
+    "reactEmoji": "❤️"
+  },
+  "groupDefaults": {
+    "antitag": true,
+    "antidelete": true,
+    "gcpresence": false,
+    "antiforeign": true,
+    "antidemote": false,
+    "antipromote": true,
+    "events": false,
+    "antilink": true
+  },
+  "groupSettings": {},
+  "bannedUsers": [],
+  "sudoUsers": [
+    "254114018035",
+    "254741889898"
+  ],
+  "conversationHistory": {}
+}
