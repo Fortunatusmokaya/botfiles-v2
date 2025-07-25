@@ -13,8 +13,8 @@ const groupCache = require("../Client/groupCache");
 const connectionHandler = async (client, update, startDreaded) => {
   const { connection, lastDisconnect } = update;
 
-  const settings = await getSettings();
-  const { autobio } = settings;
+
+  
   
   const getGreeting = () => {
     const currentHour = DateTime.now().setZone("Africa/Nairobi").hour;
@@ -89,6 +89,10 @@ const connectionHandler = async (client, update, startDreaded) => {
       console.log("📈 Connecting to PostgreSQL database...");
       try {
       await initializeDatabase();
+
+
+
+  
       console.log("📉 Connected to PostgreSQL database.");
     } catch (error) {
       console.error("Error connecting to PostgreSQL:", error.message);
@@ -117,6 +121,8 @@ const connectionHandler = async (client, update, startDreaded) => {
     }
 
     const Myself = client.user.id.replace(/:.*/, "").split("@")[0];
+
+const settings = await getSettings();
     const currentDevs = await getSudoUsers();
 
     if (!currentDevs.includes(Myself)) {
