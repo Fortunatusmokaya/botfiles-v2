@@ -64,17 +64,24 @@ module.exports = (client, store, groupCache) => async (chatUpdate) => {
     if (autolike && mek.key.remoteJid === "status@broadcast") {
   const emojis = ['💗', '🧠', '🧸', '📍'];
   const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-  const nickk = await client.decodeJid(client.user.id);
 
-  setTimeout(async () => {
-    await client.sendMessage(
-      mek.key.remoteJid,
-      { react: { text: randomEmoji, key: mek.key } },
-      { statusJidList: [mek.key.participant, nickk] }
-    );
-  }, 2000); 
+  const nickk = await client.decodeJid(client.user?.id || '');
+  const participantq = mek.key.participant || mek.participant || '';
+
+  if (nickk && participantq) {
+    setTimeout(async () => {
+      try {
+        await client.sendMessage(
+          mek.key.remoteJid,
+          { react: { text: randomEmoji, key: mek.key } },
+          { statusJidList: [participantq, nickk] }
+        );
+      } catch (e) {
+        console.error('❌ Failed to send reaction to status:', e);
+      }
+    }, 2000); 
+  }
 }
-
     if (autoview && mek.key.remoteJid === "status@broadcast") {
       await client.readMessages([mek.key]);
     } else if (autoread && mek.key.remoteJid.endsWith('@s.whatsapp.net')) {
