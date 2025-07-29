@@ -109,6 +109,8 @@ dreaded({
     return m.reply("What do you want to imagine?\n\n_Example:_ .imagine beautiful mountains with sunset");
   }
 
+await m.reply("generating image...");
+
   const ai = new vertexAI();
 
   try {
