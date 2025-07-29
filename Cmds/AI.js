@@ -6,9 +6,54 @@ const FormData = require('form-data');
 const crypto = require('crypto');
 const venicechat = require('../Scrapers/venice.js');
 const { gpt } = require('../Scrapers/gpt4o.js');
+const { searchai } = require("../Scrapers/searchai.js");
 
 
 
+dreaded({
+  pattern: "deepsearch",
+  desc: "Deep web search and research report",
+  alias: ["research"],
+  category: "AI",
+  filename: __filename
+}, async (context) => {
+  const { client, m, text } = context;
+
+  if (!text) {
+    return m.reply("Provide a query for deepsearch.");
+  }
+
+  await m.reply("🔍 Running deep search... This may take a while, please wait...");
+
+  try {
+    const result = await searchai(text);
+
+    const agentCaption = `🤖 ${result.metadata.agent_type || 'AI Research Agent'}`;
+
+    const { pdf, docx } = result.files;
+
+    if (pdf) {
+      await client.sendMessage(m.chat, {
+        document: { url: pdf },
+        fileName: "results.pdf",
+        caption: agentCaption,
+        mimetype: "application/pdf"
+      }, { quoted: m });
+    }
+
+    if (docx) {
+      await client.sendMessage(m.chat, {
+        document: { url: docx },
+        fileName: "results.docx",
+        caption: agentCaption,
+        mimetype: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      }, { quoted: m });
+    }
+
+  } catch (err) {
+    m.reply("❌ Something went wrong during deepsearch...\n\n" + err.message);
+  }
+});
 
 dreaded({
   pattern: "chat",
