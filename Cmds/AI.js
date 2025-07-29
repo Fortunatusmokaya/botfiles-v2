@@ -10,6 +10,57 @@ const { searchai } = require("../Scrapers/searchai.js");
 
 const vertexAI = require('../Scrapers/gemini');
 
+
+dreaded({
+  pattern: "vision",
+  desc: "Ask AI about a document or image",
+  category: "AI",
+  filename: __filename
+}, async (context) => {
+  const { client, m, text } = context;
+
+  if (!text) {
+    return m.reply("Please provide a question.\n\n_Example:_ .vision Summarize this document");
+  }
+
+  const v = new vertexAI();
+  let fileBuffer = null;
+
+  
+  if (m.quoted && m.quoted.mtype && m.quoted.download) {
+    try {
+      m.reply("📥 Downloading file...");
+      fileBuffer = await m.quoted.download();
+    } catch (err) {
+      console.error("File download error:", err);
+      return m.reply("❌ Failed to download the attached file.");
+    }
+  }
+
+  try {
+    m.reply("🧠 analyzing, this may take a while...");
+
+    const result = await v.chat(text, {
+      model: 'gemini-1.5-pro',
+      file_buffer: fileBuffer
+    });
+
+    const aiReply = result?.[0]?.content?.parts?.[0]?.text;
+
+    if (!aiReply) return m.reply("⚠️ No response received from AI.");
+
+    await client.sendMessage(
+      m.chat,
+      { text: aiReply },
+      { quoted: m }
+    );
+
+  } catch (err) {
+    console.error("AI error:", err.response?.data || err);
+    m.reply("❌ Error while processing your request.");
+  }
+});
+
 dreaded({
   pattern: "imagine",
   desc: "Imagine command",
