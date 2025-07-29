@@ -8,7 +8,49 @@ const venicechat = require('../Scrapers/venice.js');
 const { gpt } = require('../Scrapers/gpt4o.js');
 const { searchai } = require("../Scrapers/searchai.js");
 
+const vertexAI = require('../Scrapers/gemini');
 
+dreaded({
+  pattern: "imagine",
+  desc: "Imagine command",
+  category: "AI",
+  filename: __filename
+}, async (context) => {
+  const { client, m, text, botname } = context;
+
+  if (!text) {
+    return m.reply("What do you want to imagine?\n\n_Example:_ .imagine beautiful mountains with sunset");
+  }
+
+  const ai = new vertexAI();
+
+  try {
+    const predictions = await ai.image(text, {
+      model: 'imagen-3.0-generate-002',
+      aspect_ratio: '9:16'
+    });
+
+    const base64 = predictions?.[0]?.bytesBase64Encoded;
+    if (!base64) {
+      return m.reply("Sorry, I couldn't generate the image. Please try again later.");
+    }
+
+    const imageBuffer = Buffer.from(base64, 'base64');
+
+    await client.sendMessage(
+      m.chat,
+      {
+        image: imageBuffer,
+        caption: `_Created by: ${botname}_`
+      },
+      { quoted: m }
+    );
+
+  } catch (e) {
+    console.error(e.response?.data?.error?.message || e.message);
+    m.reply("An error occurred while generating the image.");
+  }
+});
 
 dreaded({
   pattern: "deepsearch",
@@ -215,44 +257,6 @@ dreaded({
 });
 
 
-dreaded({
-  pattern: "imagine",
-  desc: "Imagine command",
-  category: "AI",
-  filename: __filename
-}, async (context) => {
-  
-  
-  
-      const { client, m, text, fetchJson, botname } = context;
-  
-      if (!text) return m.reply("What do you want to imagine?\n\n_Example:_ .imagine beautiful mountains with sunset");
-  
-      const apiUrl = `https://api.dreaded.site/api/imagine?text=${encodeURIComponent(text)}`;
-  
-      try {
-          const data = await fetchJson(apiUrl);
-  
-          if (!data.status || !data.result) {
-              return m.reply("Sorry, I couldn't generate the image. Please try again later.");
-          }
-  
-          const { creator, result } = data;
-          const caption = `_Created by: ${botname}_`;
-  
-          await client.sendMessage(
-              m.chat,
-              {
-                  image: { url: result },
-                  caption: caption
-              },
-              { quoted: m }
-          );
-      } catch (error) {
-          console.error(error);
-          m.reply("An error occurred while generating the image.");
-      }
-});
 
 
 
