@@ -10,7 +10,6 @@ const { gpt } = require('../Scrapers/gpt4o.js');
 
 
 
-
 dreaded({
   pattern: "chat",
   desc: "Chat command",
@@ -30,7 +29,6 @@ dreaded({
   }
 
   try {
-    
     await saveConversation(num, 'user', text);
 
     const recentHistory = await getRecentMessages(num);
@@ -38,16 +36,20 @@ dreaded({
 
     const fullPrompt = `${contextString}\nuser: ${text.replace('--reset', '').trim()}`;
 
-    const response = await sendToGPT(fullPrompt);
-    await saveConversation(num, 'bot', response);
-    await m.reply(response);
+    const result = await gpt(fullPrompt);
+
+    if (result?.response) {
+      await saveConversation(num, 'bot', result.response);
+      await m.reply(result.response);
+    } else {
+      m.reply("Invalid response from AI.");
+    }
 
   } catch (error) {
     console.error(error);
     m.reply("Something went wrong...\n\n" + error.message);
   }
 });
-
 
 
 
