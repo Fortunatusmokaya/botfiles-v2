@@ -5,69 +5,10 @@ const fetch = require('node-fetch');
 const FormData = require('form-data');
 const crypto = require('crypto');
 const venicechat = require('../Scrapers/venice.js');
-
-dreaded({
-  pattern: "aicode",
-  desc: "Aicode command",
-  category: "AI",
-  filename: __filename
-}, async (context) => {
-  
-      const { client, m, text, botname, fetchJson, prefix } = context;
-      const num = m.sender; 
-  
-      if (!text) return m.reply(`Provide a prompt and a programming language. Usage: ${prefix}aicode <language> <prompt>`);
-  
-      const [language, ...promptArr] = text.split(' ');
-      const prompt = promptArr.join(' ');
-  
-      if (!language || !prompt) {
-          return m.reply(`Please provide both a language and a prompt. Example: *${prefix}aicode python 'Create a Hello World program*`);
-      }
-  
-      try {
-          
-          const response = await fetchJson(`https://api.dreaded.site/api/aicode?prompt=${encodeURIComponent(prompt)}&language=${language.toLowerCase()}`);
-  
-          if (response.success) {
-              const { code, language } = response.result;
-              m.reply(`Here is your code in ${language}:\n\n${code}`);
-          } else {
-              m.reply("There was an issue generating the code. Please check your prompt and language.");
-          }
-      } catch (error) {
-          console.error(error);
-          m.reply("Something went wrong while fetching the code.");
-      }
-});
+const { sendToGPT } = require('../Scrapers/gpt4o.js'); 
 
 
-dreaded({
-  pattern: "aisearch",
-  desc: "Aisearch command",
-  category: "AI",
-  filename: __filename
-}, async (context) => {
-  
-      const { client, m, text, botname, fetchJson } = context;
-  
-      if (!text) {
-          return m.reply("Provide some text or query. This AI will search and summarize results from Google.");
-      }
-  
-      try {
-          const data = await fetchJson(`https://api.dreaded.site/api/aisearch?query=${text}`);
-  
-          if (data && data.result) {
-              const res = data.result;
-              await m.reply(res);
-          } else {
-              m.reply("Invalid response from the API.");
-          }
-      } catch (error) {
-          m.reply("An error occurred while connecting to the API. Please try again.\n" + error);
-      }
-});
+
 
 
 dreaded({
@@ -76,90 +17,37 @@ dreaded({
   category: "AI",
   filename: __filename
 }, async (context) => {
-  
-   
-  
-  
-      const { client, m, text, botname, fetchJson, prefix } = context;
-      const num = m.sender;
-  
-      if (!text) return m.reply(`Provide some text or query for AI chat. Your chats with the AI are stored indefinitely to create context, to delete your chat history send *${prefix}chat --reset*`);
-  
-      
-      if (text.toLowerCase().includes('--reset')) {
-          await deleteUserHistory(num);
-          return m.reply("Conversation history cleared.");
-      }
-  
-      try {
-          await saveConversation(num, 'user', text);
-  
-          const recentHistory = await getRecentMessages(num);
-          const contextString = recentHistory.map(entry => `${entry.role}: ${entry.message}`).join('\n');
-  
-          const queryWithContext = encodeURIComponent(`${contextString}\nuser: ${text.replace('--reset', '').trim()}`);
-          const data = await fetchJson(`https://api.dreaded.site/api/aichat?query=${queryWithContext}`);
-  
-          const response = data?.result || "I'm not sure how to respond to that.";
-  
-          await saveConversation(num, 'bot', response);
-          await m.reply(response);
-  
-      } catch (error) {
-          console.error(error);
-          m.reply("Something went wrong...\n\n" + error.message);
-      }
+  const { client, m, text, botname, prefix } = context;
+  const num = m.sender;
+
+  if (!text) {
+    return m.reply(`Provide some text or query for AI chat. Your chats with the AI are stored indefinitely to create context, to delete your chat history send *${prefix}chat --reset*`);
+  }
+
+  if (text.toLowerCase().includes('--reset')) {
+    await deleteUserHistory(num);
+    return m.reply("Conversation history cleared.");
+  }
+
+  try {
+    
+    await saveConversation(num, 'user', text);
+
+    const recentHistory = await getRecentMessages(num);
+    const contextString = recentHistory.map(entry => `${entry.role}: ${entry.message}`).join('\n');
+
+    const fullPrompt = `${contextString}\nuser: ${text.replace('--reset', '').trim()}`;
+
+    const response = await sendToGPT(fullPrompt);
+    await saveConversation(num, 'bot', response);
+    await m.reply(response);
+
+  } catch (error) {
+    console.error(error);
+    m.reply("Something went wrong...\n\n" + error.message);
+  }
 });
 
-
-dreaded({
-  pattern: "codegen",
-  desc: "Codegen command",
-  category: "AI",
-  filename: __filename
-}, async (context) => {
-  
-  
-  
-      const { client, m, text } = context;
-  
-      if (!text) {
-          return m.reply("Example usage:\n.codegen Function to calculate triangle area|Python");
-      }
-  
-      let [prompt, language] = text.split("|").map(v => v.trim());
-  
-      if (!prompt || !language) {
-          return m.reply(
-              "Invalid format!\nUse the format:\n.codegen <prompt>|<language>\n\n" +
-              "Example:\n.codegen Check for prime number|JavaScript"
-          );
-      }
-  
-      try {
-          const payload = {
-              customInstructions: prompt,
-              outputLang: language
-          };
-  
-          const { data } = await axios.post("https://www.codeconvert.ai/api/generate-code", payload);
-  
-          if (!data || typeof data !== "string") {
-              return m.reply("Failed to retrieve code from API.");
-          }
-  
-          m.reply(
-              `*Generated Code (${language}):*\n` +
-              "```" + language.toLowerCase() + "\n" +
-              data.trim() +
-              "\n```"
-          );
-  
-      } catch (error) {
-          console.error(error);
-          m.reply("An error occurred while processing your request.");
-      }
-});
 
 
 
@@ -193,101 +81,39 @@ dreaded({
 });
 
 
-dreaded({
-  pattern: "gemini",
-  desc: "Gemini command",
-  category: "AI",
-  filename: __filename
-}, async (context) => {
-  
-      const { client, m, text, fetchJson } = context;
-  
-      if (!text) {
-          return m.reply("What's your question?");
-      }
-  
-      try {
-          const data = await fetchJson(`https://api.dreaded.site/api/gemini2?text=${encodeURIComponent(text)}`);
-  
-          if (data.success) {
-              const res = data.result;
-              await m.reply(res);
-          } else {
-              await m.reply("Failed to get a response from the API.");
-          }
-  
-      } catch (e) {
-          console.log(e);
-          m.reply("An error occurred while processing your request.");
-      }
-});
+
 
 
 dreaded({
   pattern: "gpt",
   desc: "Gpt command",
-alias: ["ai"],
+  alias: ["ai"],
   category: "AI",
   filename: __filename
 }, async (context) => {
-  
-      const { client, m, text, botname, fetchJson } = context;
-  
-      if (!text) {
-          return m.reply("Provide some text or query for chatgpt.");
-      }
-  
+  const { client, m, text } = context;
+
+  if (!text) {
+    return m.reply("Provide some text or query for ChatGPT.");
+  }
+
   try {
-  
-  const data = await fetchJson(`https://api.dreaded.site/api/chatgpt?text=${text}`);
-  
-  if (data && data.result && data.result.prompt) {
-  
-  const res = data.result.prompt;
-  await m.reply(res);
-  
-  } else {
-  
-  m.reply("Invalid response from API")
-  
-  }
-  
-  } catch (error) {
-  
-  m.reply("Something went wrong...\n\n" + error)
-  
+    const response = await sendToGPT(text);
+
+    if (response?.data?.reply) {
+      await m.reply(response.data.reply);
+    } else if (typeof response === "string") {
+      await m.reply(response);
+    } else {
+      m.reply("Invalid response from AI.");
+    }
+  } catch (err) {
+    m.reply("Something went wrong...\n\n" + err.message);
   }
 });
 
 
-dreaded({
-  pattern: "gpt2",
-  desc: "Gpt2 command",
-  category: "AI",
-  filename: __filename
-}, async (context) => {
-  
-      const { client, m, text, fetchJson } = context;
-  
-      if (!text) {
-          return m.reply("What's your question?");
-      }
-  
-      try {
-          const data = await fetchJson(`https://api.dreaded.site/api/gpt?text=${encodeURIComponent(text)}`);
-  
-          if (data.success) {
-              const res = data.result;
-              await m.reply(res);
-          } else {
-              await m.reply("Failed to get a response from the API.");
-          }
-  
-      } catch (e) {
-          console.log(e);
-          m.reply("An error occurred while processing your request.");
-      }
-});
+
 
 
 
@@ -459,51 +285,3 @@ async function transcribeWithTalknotes(buffer) {
 }
 
 
-dreaded({
-  pattern: "vision",
-  desc: "Vision command",
-  category: "AI",
-  filename: __filename
-}, async (context) => {
-  
-  
-  
-      const { client, mime, m, text, botname } = context;
-  
-      if (m.quoted && text) {
-          const buffer = await m.quoted.download();
-  
-  
-          if (!/image|pdf/.test(mime)) return m.reply("That's neither an image nor a PDF, quote a PDF document or an image with instructions.");
-  
-          const query = text;
-          const base64String = buffer.toString('base64');
-  
-          await m.reply(`A moment, dreaded is analyzing the contents of the ${mime.includes("pdf") ? "PDF document" : "image"} you provided...`);
-  
-          try {
-              const response = await axios.post('https://api.dreaded.site/api/gemini-analyze', {
-                  query: query,
-                  imageBuffer: base64String
-              }, {
-                  headers: {
-                      'Content-Type': 'application/json'  
-                  }
-              });
-  
-              console.log(response.data);
-              await m.reply(response.data.result);
-          } catch (error) {
-              const errorMessage = error.message || 'An unknown error occurred.';
-              const maxErrorLength = 200;
-              const replyMessage = errorMessage.length > maxErrorLength
-                  ? errorMessage.substring(0, maxErrorLength) + '...'
-                  : errorMessage;
-  
-              console.error("Error in sending request:", error);
-              await m.reply(replyMessage);
-          }
-      } else {
-          m.reply("Quote a PDF or image with instructions for bot to analyse.");
-      }
-});
