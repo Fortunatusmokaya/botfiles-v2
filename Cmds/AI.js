@@ -5,7 +5,7 @@ const fetch = require('node-fetch');
 const FormData = require('form-data');
 const crypto = require('crypto');
 const venicechat = require('../Scrapers/venice.js');
-const { sendToGPT } = require('../Scrapers/gpt4o.js'); 
+const { gpt } = require('../Scrapers/gpt4o.js');
 
 
 
@@ -84,6 +84,8 @@ dreaded({
 
 
 
+
+
 dreaded({
   pattern: "gpt",
   desc: "Gpt command",
@@ -98,12 +100,10 @@ dreaded({
   }
 
   try {
-    const response = await sendToGPT(text);
+    const result = await gpt(text);
 
-    if (response?.data?.reply) {
-      await m.reply(response.data.reply);
-    } else if (typeof response === "string") {
-      await m.reply(response);
+    if (result?.response) {
+      await m.reply(result.response);
     } else {
       m.reply("Invalid response from AI.");
     }
