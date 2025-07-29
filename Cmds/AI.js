@@ -12,6 +12,42 @@ const vertexAI = require('../Scrapers/gemini');
 
 
 dreaded({
+  pattern: "gemini",
+  desc: "Ask anything...",
+  category: "AI",
+  filename: __filename
+}, async (context) => {
+  const { client, m, text } = context;
+
+  if (!text) {
+    return m.reply("provide a question or prompt.");
+  }
+
+  const v = new vertexAI();
+
+  try {
+    
+    const result = await v.chat(text, {
+      model: 'gemini-1.5-flash'
+    });
+
+    const aiReply = result?.[0]?.content?.parts?.[0]?.text;
+
+    if (!aiReply) return m.reply("⚠️ No response received from AI.");
+
+    await client.sendMessage(
+      m.chat,
+      { text: aiReply },
+      { quoted: m }
+    );
+
+  } catch (err) {
+    console.error("AI error:", err.response?.data || err);
+    m.reply("❌ Something went wrong while talking to the AI.");
+  }
+});
+
+dreaded({
   pattern: "vision",
   desc: "Ask AI about a document or image",
   category: "AI",
@@ -20,7 +56,7 @@ dreaded({
   const { client, m, text } = context;
 
   if (!text) {
-    return m.reply("Please provide a question.\n\n_Example:_ .vision Summarize this document");
+    return m.reply("provide a question and tag an image or document...");
   }
 
   const v = new vertexAI();
@@ -29,7 +65,7 @@ dreaded({
   
   if (m.quoted && m.quoted.mtype && m.quoted.download) {
     try {
-      m.reply("📥 Downloading file...");
+      
       fileBuffer = await m.quoted.download();
     } catch (err) {
       console.error("File download error:", err);
@@ -38,7 +74,7 @@ dreaded({
   }
 
   try {
-    m.reply("🧠 analyzing, this may take a while...");
+    m.reply("🧠 ...analyzing, this may take a while...");
 
     const result = await v.chat(text, {
       model: 'gemini-1.5-pro',
@@ -47,7 +83,7 @@ dreaded({
 
     const aiReply = result?.[0]?.content?.parts?.[0]?.text;
 
-    if (!aiReply) return m.reply("⚠️ No response received from AI.");
+    if (!aiReply) return m.reply(" No response received from AI.");
 
     await client.sendMessage(
       m.chat,
