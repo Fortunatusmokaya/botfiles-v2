@@ -4,6 +4,7 @@ const axios = require("axios");
 const fetch = require('node-fetch');
 const FormData = require('form-data');
 const crypto = require('crypto');
+const venicechat = require('../Scrapers/venice.js');
 
 dreaded({
   pattern: "aicode",
@@ -161,35 +162,34 @@ dreaded({
 });
 
 
+
+
 dreaded({
   pattern: "darkgpt",
   desc: "Darkgpt command",
-alias: ["wormgpt"],
+  alias: ["wormgpt"],
   category: "AI",
   filename: __filename
 }, async (context) => {
-  
-      const { client, m, text } = context;
-  
-      try {
-          if (!text) {
-              return m.reply("I am darkgpt, I can respond to anything — even the darkest thoughts. What do you want ?");
-          }
-  
-          const msg = encodeURIComponent(text);
-          const response = await fetch(`http://darkgpt.dreaded.site:3800/api/venice?text=${msg}`);
-  
-          const result = await response.json();
-  
-          if (!result.response) {
-              return m.reply('I did not get any result');
-          }
-  
-          await m.reply(result.response);
-  
-      } catch (e) {
-          m.reply('An error occurred while communicating with the Venice API:\n' + e);
-      }
+
+  const { client, m, text } = context;
+
+  try {
+    if (!text) {
+      return m.reply("I am darkgpt, I can respond to anything — even the darkest thoughts. What do you want?");
+    }
+
+    const result = await venicechat(text);
+
+    if (!result || !result.response) {
+      return m.reply('I did not get any result');
+    }
+
+    await m.reply(result.response);
+
+  } catch (e) {
+    m.reply('An error occurred while communicating with the Venice scraper:\n' + e.message);
+  }
 });
 
 
