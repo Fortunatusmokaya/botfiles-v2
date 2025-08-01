@@ -13,7 +13,6 @@ const {
 const pino = require("pino");
 const { Boom } = require("@hapi/boom");
 const fs = require("fs");
-const express = require("express");
 const app = express();
 const port = process.env.PORT || 10000;
 const NodeCache =require("node-cache");
@@ -64,7 +63,7 @@ async function startDreaded() {
         shouldSyncHistoryMessage: true,
         downloadHistory: false,
         syncFullHistory: false,
-        generateHighQualityLinkPreview: true,
+        generateHighQualityLinkPreview: false,
         markOnlineOnConnect: true,
         keepAliveIntervalMs: 30_000,
         auth: state,
@@ -93,7 +92,7 @@ async function startDreaded() {
 
     setInterval(() => { 
         store.writeToFile("store.json"); 
-    }, 30000);
+    }, 3000000);
 
     client.ev.on("connection.update", async (update) => {
         await connectionHandler(client, update, startDreaded);
@@ -123,15 +122,6 @@ async function startDreaded() {
     client.ev.on("creds.update", saveCreds);
 }
 
-app.use(express.static('public'));
-
-app.get("/", (req, res) => {
-    res.sendFile(__dirname + '/index.html'); 
-});
-
-app.listen(port, () => {
-    console.log(`Server listening on port http://localhost:${port}`);
-});
 
 startDreaded();
 
