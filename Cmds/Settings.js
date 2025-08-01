@@ -171,56 +171,7 @@ dreaded({
 });
 
 
-dreaded({
-  pattern: "antiforeign",
-  desc: "Antiforeign command",
-  category: "Settings",
-  filename: __filename
-}, async (context) => {
-  
-  
-      await ownerMiddleware(context, async () => {
-const { args, m } = context;
-          
-          const value = args[0]?.toLowerCase();
-          const jid = m.chat;
-  
-          if (!jid.endsWith('@g.us')) {
-              return await m.reply('❌ This command can only be used in groups.');
-          }
-  
-          const settings = await getSettings();
-          const prefix = settings.prefix;
-  
-          let groupSettings = await getGroupSetting(jid);
-          let isEnabled = groupSettings?.antiforeign === true;
-  
-          const Myself = await client.decodeJid(client.user.id);
-          const groupMetadata = await client.groupMetadata(m.chat);
-          const userAdmins = groupMetadata.participants.filter(p => p.admin !== null).map(p => p.id);
-          const isBotAdmin = userAdmins.includes(Myself);
-  
-          if (value === 'on' && !isBotAdmin) {
-              return await m.reply('❌ I need admin privileges to enable Antiforeign.');
-          }
-  
-          if (value === 'on' || value === 'off') {
-              const action = value === 'on';
-  
-              if (isEnabled === action) {
-                  return await m.reply(`✅ Antiforeign is already ${value.toUpperCase()}.`);
-              }
-  
-              await updateGroupSetting(jid, 'antiforeign', action);
-              await m.reply(`✅ Antiforeign has been turned ${value.toUpperCase()} for this group.`);
-          } else {
-              await m.reply(
-                  `📄 Current Antiforeign setting for this group: ${isEnabled ? 'ON' : 'OFF'}\n\n` +
-                  `_Use ${prefix}antiforeign on or ${prefix}antiforeign off to change it._`
-              );
-          }
-      });
-});
+
 
 
 dreaded({
@@ -494,43 +445,7 @@ if (m.quoted) {
 });
 
 
-dreaded({
-  pattern: "events",
-  alias: [],
-  desc: "Events command",
-  category: "Settings",
-  filename: __filename
-}, async (context) => {
-  await ownerMiddleware(context, async () => {
-const { args, m } = context;
-    
-    const value = args[0]?.toLowerCase();
-    const jid = m.chat;
 
-    if (!jid.endsWith('@g.us')) {
-      return await m.reply('❌ This command can only be used in groups.');
-    }
-
-    const settings = await getSettings();
-    const prefix = settings.prefix;
-
-    let groupSettings = await getGroupSetting(jid);
-    let isEnabled = groupSettings?.events === true;
-
-    if (value === 'on' || value === 'off') {
-      const action = value === 'on';
-
-      if (isEnabled === action) {
-        return await m.reply(`✅ Events are already ${value.toUpperCase()} for this group.`);
-      }
-
-      await updateGroupSetting(jid, 'events', action ? 'true' : 'false');
-      await m.reply(`✅ Events have been turned ${value.toUpperCase()} for this group.`);
-    } else {
-      await m.reply(`📄 Current events setting for this group: ${isEnabled ? 'ON' : 'OFF'}\n\n_Use ${prefix}events on_ or _${prefix}events off_ to change it.`);
-    }
-  });
-});
 
 dreaded({
   pattern: "gcpresence",
@@ -698,37 +613,7 @@ const { args, m } = context;
   });
 });
 
-dreaded({
-  pattern: "reaction",
-  alias: [],
-  desc: "Reaction command",
-  category: "Settings",
-  filename: __filename
-}, async (context) => {
-  await ownerMiddleware(context, async () => {
-const { args, m } = context;
-    
-    const newEmoji = args[0];
 
-    const settings = await getSettings();
-    const prefix = settings.prefix;
-    const current = settings.reactEmoji || 'No emoji set';
-
-    if (newEmoji) {
-      if (newEmoji === 'random') {
-        if (current === 'random') return m.reply('✅ Already set to random.');
-        await updateSetting('reactEmoji', 'random');
-        return m.reply('✅ Emoji set to random.');
-      } else {
-        if (current === newEmoji) return m.reply(`✅ Already set to: ${newEmoji}`);
-        await updateSetting('reactEmoji', newEmoji);
-        return m.reply(`✅ Emoji updated to: ${newEmoji}`);
-      }
-    }
-
-    return m.reply(`📄 Current: ${current}\n\nUse _${prefix}reaction random_ or _${prefix}reaction 😎_`);
-  });
-});
 
 dreaded({
   pattern: "stickerwm",
