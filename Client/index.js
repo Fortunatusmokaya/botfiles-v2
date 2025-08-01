@@ -13,7 +13,6 @@ const {
 const pino = require("pino");
 const { Boom } = require("@hapi/boom");
 const fs = require("fs");
-const app = express();
 const port = process.env.PORT || 10000;
 const NodeCache =require("node-cache");
 const { sleep } = require('../lib/botFunctions');
