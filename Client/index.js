@@ -51,12 +51,12 @@ const handleCall = require('../Handler/callHandler');
 
 async function startDreaded() {
     
-    
+    const { version, isLatest } = await fetchLatestBaileysVersion();
     const { saveCreds, state } = await useMultiFileAuthState(sessionName);
     const client = dreadedConnect({
         logger: pino({ level: 'silent' }),
         printQRInTerminal: true,
-        version: [2, 3000, 1023223821],
+        version,
         browser: ['DREADED', 'Safari', '3.0'],
         fireInitQueries: false,
         shouldSyncHistoryMessage: true,
